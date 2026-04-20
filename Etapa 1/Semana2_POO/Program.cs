@@ -3,9 +3,10 @@
 var gerente = new Gerente("Laura", "Gomez", 3000, new DateTime(2018, 1, 10), 8);
 var dev1 = new Desarrollador("Antonio", "Melino", 1500, new DateTime(2023, 6, 1), "C#", "Junior");
 var dev2 = new Desarrollador("Sofia", "Paz", 2000, new DateTime(2020, 3, 15), "React", "Semi");
+var pasante = new Pasante("Enzo", "Oliva", 1000, new DateTime(2026, 1, 1), "Universidad Tecnologica Nacional");
 
-// Los tres son Empleados — podés meterlos en la misma lista
-var equipo = new List<Empleado> { gerente, dev1, dev2 };
+// Los cuatro son Empleados
+var equipo = new List<Empleado> { gerente, dev1, dev2, pasante };
 
 Console.WriteLine("=== EQUIPO ===");
 foreach (var emp in equipo)
@@ -14,6 +15,11 @@ foreach (var emp in equipo)
 Console.WriteLine("\n=== ESTADÍSTICAS ===");
 Console.WriteLine($"Salario promedio: ${equipo.Average(e => e.Salario):F2}");
 Console.WriteLine($"Empleado mejor pago: {equipo.MaxBy(e => e.Salario).NombreCompleto()}");
+
+Console.WriteLine("\n=== PASANTE ===");
+pasante.MostrarInfo();
+pasante.AumentarSalario(20);  // se limita al 5%
+pasante.MostrarInfo();        // el salario tiene que mostrar el aumento del 5%, no del 20%
 public class Empleado
 {
     // Propiedades públicas
@@ -37,7 +43,7 @@ public class Empleado
     // Métodos públicos
     public string NombreCompleto() => $"{Nombre} {Apellido}";
 
-    public void AumentarSalario(decimal porcentaje)
+    public virtual void AumentarSalario(decimal porcentaje)
     {
         if(porcentaje <= 0 || porcentaje > 100)
         {
@@ -94,5 +100,31 @@ public class Desarrollador : Empleado
     {
         base.MostrarInfo();
         Console.WriteLine($" → {Seniority} Developer en {Lenguaje}");
+    }
+}
+
+public class Pasante : Empleado
+{
+    public string Universidad {  get; set; }
+
+    public Pasante(string nombre, string apellido, decimal salario, DateTime fechaIngreso, string universidad) : base(nombre, apellido, salario, fechaIngreso)
+    {
+        Universidad = universidad;
+    }
+
+    public override void MostrarInfo()
+    {
+        base.MostrarInfo();
+        Console.WriteLine($"Estudio en {Universidad}");
+    }
+
+    public override void AumentarSalario(decimal porcentaje)
+    {
+        if(porcentaje > 5)
+        {
+            Console.WriteLine($"Porcentaje limitado automáticamente de {porcentaje}% a 5%");
+            porcentaje = 5;
+        }
+        base.AumentarSalario(porcentaje);
     }
 }
