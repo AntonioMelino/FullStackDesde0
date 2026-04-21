@@ -3,24 +3,43 @@
 var gerente = new Gerente("Laura", "Gomez", 3000, new DateTime(2018, 1, 10), 8);
 var dev1 = new Desarrollador("Antonio", "Melino", 1500, new DateTime(2023, 6, 1), "C#", "Junior");
 var dev2 = new Desarrollador("Sofia", "Paz", 2000, new DateTime(2020, 3, 15), "React", "Semi");
-var pasante = new Pasante("Enzo", "Oliva", 1000, new DateTime(2026, 1, 1), "Universidad Tecnologica Nacional");
+var pasante = new Pasante("Enzo", "Oliva", 1000, new DateTime(2026, 1, 1), "UTN");
 
-// Los cuatro son Empleados
 var equipo = new List<Empleado> { gerente, dev1, dev2, pasante };
 
-Console.WriteLine("=== EQUIPO ===");
+Console.WriteLine("=== EQUIPO COMPLETO ===");
 foreach (var emp in equipo)
-    emp.MostrarInfo();  // cada uno ejecuta SU versión de MostrarInfo
+    emp.MostrarInfo();
+
+Console.WriteLine("\n=== REPORTES ===");
+foreach (IReporteable emp in equipo)   // ← tratamos a todos como IReporteable
+    Console.WriteLine(emp.GenerarReporte());
 
 Console.WriteLine("\n=== ESTADÍSTICAS ===");
 Console.WriteLine($"Salario promedio: ${equipo.Average(e => e.Salario):F2}");
-Console.WriteLine($"Empleado mejor pago: {equipo.MaxBy(e => e.Salario).NombreCompleto()}");
+Console.WriteLine($"Mejor pago: {equipo.MaxBy(e => e.Salario).NombreCompleto()}");
+Console.WriteLine($"Más antiguo: {equipo.MinBy(e => e.FechaIngreso).NombreCompleto()}");
 
-Console.WriteLine("\n=== PASANTE ===");
-pasante.MostrarInfo();
-pasante.AumentarSalario(20);  // se limita al 5%
-pasante.MostrarInfo();        // el salario tiene que mostrar el aumento del 5%, no del 20%
-public class Empleado
+Console.WriteLine("\n=== SOLO DESARROLLADORES ===");
+equipo.OfType<Desarrollador>()
+      .ToList()
+      .ForEach(d => Console.WriteLine($"{d.NombreCompleto()} — {d.Seniority} en {d.Lenguaje}"));
+
+
+// ── INTERFACES ─────────────────────────────────────
+public interface IEmpleado
+{
+    string NombreCompleto();
+    void MostrarInfo();
+    void AumentarSalario(decimal porcentaje);
+}
+
+public interface IReporteable
+{
+    string GenerarReporte();
+}
+
+public class Empleado : IEmpleado, IReporteable
 {
     // Propiedades públicas
     public string Nombre { get; set; }
@@ -62,6 +81,14 @@ public class Empleado
     public virtual void MostrarInfo()
     {
         Console.WriteLine($"Empleado: {NombreCompleto()} | Salario: ${Salario:F2} | Años en la empresa: {AnosEnEmpresa()}");
+    }
+
+    public string GenerarReporte()
+    {
+        return $"[REPORTE] {NombreCompleto()} | " +
+           $"Salario: ${Salario:F2} | " +
+           $"Antigüedad: {AnosEnEmpresa()} años | " +
+           $"Ingreso: {FechaIngreso:dd/MM/yyyy}";
     }
 
 }
