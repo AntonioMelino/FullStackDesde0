@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-var gerente = new Gerente("Laura", "Gomez", 3000, new DateTime(2018, 1, 10), 8);
+﻿var gerente = new Gerente("Laura", "Gomez", 3000, new DateTime(2018, 1, 10), 8);
 var dev1 = new Desarrollador("Antonio", "Melino", 1500, new DateTime(2023, 6, 1), "C#", "Junior");
 var dev2 = new Desarrollador("Sofia", "Paz", 2000, new DateTime(2020, 3, 15), "React", "Semi");
 var pasante = new Pasante("Enzo", "Oliva", 1000, new DateTime(2026, 1, 1), "UTN");
@@ -25,6 +23,10 @@ equipo.OfType<Desarrollador>()
       .ToList()
       .ForEach(d => Console.WriteLine($"{d.NombreCompleto()} — {d.Seniority} en {d.Lenguaje}"));
 
+Console.WriteLine("\n=== BONUSES ===");
+foreach (ICalculadoraBonus emp in equipo.OfType<ICalculadoraBonus>())
+    Console.WriteLine($"Bonus: ${emp.CalcularBonus():F2}");
+
 
 // ── INTERFACES ─────────────────────────────────────
 public interface IEmpleado
@@ -37,6 +39,11 @@ public interface IEmpleado
 public interface IReporteable
 {
     string GenerarReporte();
+}
+
+public interface ICalculadoraBonus
+{
+    decimal CalcularBonus();
 }
 
 public class Empleado : IEmpleado, IReporteable
@@ -93,7 +100,7 @@ public class Empleado : IEmpleado, IReporteable
 
 }
 
-public class Gerente : Empleado
+public class Gerente : Empleado, ICalculadoraBonus
 {
     public int CantidadEquipo { get; set; }
     public decimal Bonus { get; private set; }
@@ -110,9 +117,14 @@ public class Gerente : Empleado
         base.MostrarInfo(); // ejecuta el MostrarInfo original
         Console.WriteLine($" → Gerente de equipo de {CantidadEquipo} personas | Bonus ${Bonus:F2}");
     }
+
+    public decimal CalcularBonus()
+    {
+        return Salario * 0.20m;
+    }
 }
 
-public class Desarrollador : Empleado
+public class Desarrollador : Empleado, ICalculadoraBonus
 {
     public string Lenguaje { get; set; }
     public string Seniority { get; set; } // "Junior", "Semi", "Senior"
@@ -128,7 +140,19 @@ public class Desarrollador : Empleado
         base.MostrarInfo();
         Console.WriteLine($" → {Seniority} Developer en {Lenguaje}");
     }
+
+    public decimal CalcularBonus()
+    {
+        return Seniority switch
+        {
+            "Junior" => Salario * 0.05m,
+            "Semi" => Salario * 0.10m,
+            "Senior" => Salario * 0.15m,
+            _ => 0m
+        };
+    }
 }
+
 
 public class Pasante : Empleado
 {
