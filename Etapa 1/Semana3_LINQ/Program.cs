@@ -1,0 +1,67 @@
+﻿// ── DATOS SIMULADOS ────────────────────────────────
+
+var empleados = new List<Empleado>
+{
+    new() { Id=1, Nombre="Ana Torres",     Departamento="Ventas",     Seniority="Senior", Salario=3000, FechaIngreso=new DateTime(2018,3,1) },
+    new() { Id=2, Nombre="Luis Gomez",     Departamento="Ventas",     Seniority="Junior", Salario=1200, FechaIngreso=new DateTime(2023,1,15) },
+    new() { Id=3, Nombre="Sofia Paz",      Departamento="IT",         Seniority="Semi",   Salario=2200, FechaIngreso=new DateTime(2020,6,10) },
+    new() { Id=4, Nombre="Carlos Ruiz",    Departamento="IT",         Seniority="Senior", Salario=3500, FechaIngreso=new DateTime(2017,9,20) },
+    new() { Id=5, Nombre="Maria Lopez",    Departamento="RRHH",       Seniority="Semi",   Salario=1800, FechaIngreso=new DateTime(2021,4,5) },
+    new() { Id=6, Nombre="Diego Fernandez",Departamento="IT",         Seniority="Junior", Salario=1300, FechaIngreso=new DateTime(2024,2,1) },
+    new() { Id=7, Nombre="Laura Mendez",   Departamento="Ventas",     Seniority="Semi",   Salario=1900, FechaIngreso=new DateTime(2019,11,30) },
+    new() { Id=8, Nombre="Pablo Silva",    Departamento="RRHH",       Seniority="Junior", Salario=1100, FechaIngreso=new DateTime(2024,7,1) },
+};
+
+var ventas = new List<Venta>
+{
+    new() { EmpleadoId=1, Producto="Software A", Monto=5000, Fecha=new DateTime(2024,1,10) },
+    new() { EmpleadoId=1, Producto="Software B", Monto=3200, Fecha=new DateTime(2024,2,5) },
+    new() { EmpleadoId=2, Producto="Software A", Monto=1500, Fecha=new DateTime(2024,1,20) },
+    new() { EmpleadoId=7, Producto="Software C", Monto=4100, Fecha=new DateTime(2024,3,15) },
+    new() { EmpleadoId=7, Producto="Software A", Monto=2800, Fecha=new DateTime(2024,4,1) },
+    new() { EmpleadoId=3, Producto="Software B", Monto=900,  Fecha=new DateTime(2024,2,28) },
+    new() { EmpleadoId=4, Producto="Software C", Monto=6200, Fecha=new DateTime(2024,1,5) },
+    new() { EmpleadoId=1, Producto="Software C", Monto=4800, Fecha=new DateTime(2024,5,10) },
+};
+
+// 1a — Empleados de IT ordenados por salario descendente
+Console.WriteLine("=== IT por salario ===");
+var itOrdenado = empleados
+    .Where(e => e.Departamento == "IT")
+    .OrderByDescending(e => e.Salario)
+    .ToList();
+
+foreach (var e in itOrdenado)
+    Console.WriteLine($"{e.Nombre} — ${e.Salario}");
+
+// 1b — Empleados que ingresaron después de 2021 y ganan menos de $2000
+Console.WriteLine("\n=== Nuevos con salario bajo ===");
+var nuevosBaratos = empleados
+    .Where(e => e.FechaIngreso.Year > 2021 && e.Salario < 2000)
+    .OrderBy(e => e.FechaIngreso)
+    .Select(e => new { e.Nombre, e.Salario, Año = e.FechaIngreso.Year })
+    .ToList();
+
+foreach (var e in nuevosBaratos)
+    Console.WriteLine($"{e.Nombre} — ${e.Salario} — ingresó en {e.Año}");
+
+// ── MODELOS ────────────────────────────────────────
+public class Empleado
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; }
+    public string Departamento { get; set; }
+    public string Seniority { get; set; }  // "Junior", "Semi", "Senior"
+    public decimal Salario { get; set; }
+    public DateTime FechaIngreso { get; set; }
+    public List<Venta> Ventas { get; set; } = new();
+}
+
+public class Venta
+{
+    public int EmpleadoId { get; set; }
+    public string Producto { get; set; }
+    public decimal Monto { get; set; }
+    public DateTime Fecha { get; set; }
+}
+
