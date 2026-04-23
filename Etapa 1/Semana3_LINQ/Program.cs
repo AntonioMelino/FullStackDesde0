@@ -55,6 +55,41 @@ var todosSenior = empleados
 foreach (var e in todosSenior)
     Console.WriteLine($"{e.Nombre} - {e.Departamento} - años en la empresa {e.AñosEnLaEmpresa}");
 
+// 2a — Empleados agrupados por departamento
+Console.WriteLine("\n=== Empleados por departamento ===");
+var porDepto = empleados
+    .GroupBy(e => e.Departamento)
+    .OrderBy(g => g.Key)
+    .ToList();
+
+foreach (var grupo in porDepto)
+{
+    Console.WriteLine($"\n{grupo.Key} ({grupo.Count()} empleados):");
+    foreach (var emp in grupo.OrderBy(e => e.Nombre))
+        Console.WriteLine($"  - {emp.Nombre} ({emp.Seniority}) — ${emp.Salario}");
+}
+
+// 2b — Estadísticas por departamento
+Console.WriteLine("\n=== Estadísticas por departamento ===");
+var statsDepto = empleados
+    .GroupBy(e => e.Departamento)
+    .Select(g => new
+    {
+        Departamento = g.Key,
+        CantidadEmpleados = g.Count(),
+        SalarioPromedio = g.Average(e => e.Salario),
+        SalarioTotal = g.Sum(e => e.Salario),
+        EmpleadoMejorPago = g.MaxBy(e => e.Salario).Nombre
+    })
+    .OrderByDescending(g => g.SalarioPromedio)
+    .ToList();
+
+foreach (var s in statsDepto)
+    Console.WriteLine($"{s.Departamento} | {s.CantidadEmpleados} emp. | " +
+                      $"Prom: ${s.SalarioPromedio:F0} | " +
+                      $"Total: ${s.SalarioTotal:F0} | " +
+                      $"Top: {s.EmpleadoMejorPago}");
+
 // ── MODELOS ────────────────────────────────────────
 public class Empleado
 {
