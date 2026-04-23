@@ -90,6 +90,25 @@ foreach (var s in statsDepto)
                       $"Total: ${s.SalarioTotal:F0} | " +
                       $"Top: {s.EmpleadoMejorPago}");
 
+
+Console.WriteLine("\n== Empleados por Seniority ==");
+var empSeniority = empleados
+    .GroupBy(e => e.Seniority)
+    .Select(g => new
+    {   
+        Nivel = g.Key,
+        CantidadEmpleadosSeniority = g.Count(),
+        SalarioPromedioSeniority = g.Average(e => e.Salario),
+        Nombres = string.Join(", ", g.Select(e => e.Nombre))
+    })
+    .OrderBy(g => g.Nivel)
+    .ToList();
+
+foreach (var s in empSeniority)
+    Console.WriteLine($"{s.Nivel} | {s.CantidadEmpleadosSeniority} empleados | " +
+                      $"Prom: ${s.SalarioPromedioSeniority:F0} | " +
+                      $"Nombres: {s.Nombres}");
+
 // ── MODELOS ────────────────────────────────────────
 public class Empleado
 {
