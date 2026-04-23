@@ -109,6 +109,54 @@ foreach (var s in empSeniority)
                       $"Prom: ${s.SalarioPromedioSeniority:F0} | " +
                       $"Nombres: {s.Nombres}");
 
+
+// 3a — Join básico: ventas con nombre del empleado
+Console.WriteLine("\n=== Ventas con nombre del empleado ===");
+var ventasConNombre = ventas
+    .Join(
+        empleados,                    // con qué lista unís
+        v => v.EmpleadoId,            // clave de ventas
+        e => e.Id,                    // clave de empleados
+        (v, e) => new                 // qué devolvés de cada par
+        {
+            e.Nombre,
+            e.Departamento,
+            v.Producto,
+            v.Monto,
+            v.Fecha
+        }
+    )
+    .OrderByDescending(x => x.Monto)
+    .ToList();
+
+foreach (var v in ventasConNombre)
+    Console.WriteLine($"{v.Nombre} ({v.Departamento}) — {v.Producto} — ${v.Monto} — {v.Fecha:dd/MM/yyyy}");
+
+// 3b — Total vendido por empleado, solo los que tienen ventas
+Console.WriteLine("\n=== Ranking de vendedores ===");
+var ranking = ventas
+    .GroupBy(v => v.EmpleadoId)
+    .Join(
+        empleados,
+        g => g.Key,
+        e => e.Id,
+        (g, e) => new
+        {
+            e.Nombre,
+            e.Departamento,
+            TotalVentas = g.Sum(v => v.Monto),
+            CantidadVentas = g.Count(),
+            PromedioVenta = g.Average(v => v.Monto)
+        }
+    )
+    .OrderByDescending(x => x.TotalVentas)
+    .ToList();
+
+Console.WriteLine($"{"Nombre",-20} {"Depto",-10} {"Total",10} {"Cant",6} {"Promedio",10}");
+Console.WriteLine(new string('─', 60));
+foreach (var r in ranking)
+    Console.WriteLine($"{r.Nombre,-20} {r.Departamento,-10} ${r.TotalVentas,9:F0} {r.CantidadVentas,6} ${r.PromedioVenta,9:F0}");
+
 // ── MODELOS ────────────────────────────────────────
 public class Empleado
 {
