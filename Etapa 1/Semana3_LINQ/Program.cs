@@ -45,6 +45,16 @@ var nuevosBaratos = empleados
 foreach (var e in nuevosBaratos)
     Console.WriteLine($"{e.Nombre} — ${e.Salario} — ingresó en {e.Año}");
 
+Console.WriteLine("\n===Todos los empleados Senior===");
+var todosSenior = empleados
+    .Where(e => e.Seniority == "Senior")
+    .OrderBy(e => e.FechaIngreso)
+    .Select(e=> new {e.Nombre, e.Departamento, AñosEnLaEmpresa = DateTime.Now.Year - e.FechaIngreso.Year})
+    .ToList();
+
+foreach (var e in todosSenior)
+    Console.WriteLine($"{e.Nombre} - {e.Departamento} - años en la empresa {e.AñosEnLaEmpresa}");
+
 // ── MODELOS ────────────────────────────────────────
 public class Empleado
 {
