@@ -157,6 +157,36 @@ Console.WriteLine(new string('─', 60));
 foreach (var r in ranking)
     Console.WriteLine($"{r.Nombre,-20} {r.Departamento,-10} ${r.TotalVentas,9:F0} {r.CantidadVentas,6} ${r.PromedioVenta,9:F0}");
 
+Console.WriteLine("\n=== Ejercicio final de LINQ ===");
+var todoVentas = ventas
+    .GroupBy (v => v.EmpleadoId)
+    .Join(
+        empleados,
+        g => g.Key,
+        e => e.Id,
+        (g, e) => new
+        {
+            e.Departamento,
+            e.Nombre,
+            TotalVentas = g.Sum(v => v.Monto),
+        }
+
+    )
+    .GroupBy(x => x.Departamento)
+    .Select(g => new
+    {
+        Departamento = g.Key,
+        TotalVendido = g.Sum(x => x.TotalVentas),
+        EmpleadosConVentas = g.Count(),
+        MejorVendedor = g.MaxBy(x => x.TotalVentas).Nombre
+    })
+    .ToList();
+foreach (var t in todoVentas)
+    Console.WriteLine($"Departamento: {t.Departamento} | " +
+                      $"Total vendido: ${t.TotalVendido:F0} | " +
+                      $"Mejor vendedor: {t.MejorVendedor} | " +
+                      $"Empleados con ventas: {t.EmpleadosConVentas}");
+
 // ── MODELOS ────────────────────────────────────────
 public class Empleado
 {
