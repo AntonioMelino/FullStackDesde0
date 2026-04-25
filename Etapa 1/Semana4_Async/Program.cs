@@ -1,35 +1,65 @@
 ﻿using System.Text.Json;
 
-Console.WriteLine("=== Cliente HTTP Async ===\n");
+Console.WriteLine("=== Task.WhenAll ===\n");
 
 await DescargarTodoAsync();
 
 Console.WriteLine("\nPrograma terminado.");
 
-// ── MÉTODOS ────────────────────────────────────────
-
+// ── MÉTODO PRINCIPAL ───────────────────────────────
 async Task DescargarTodoAsync()
 {
-    using var client = new HttpClient();
-    client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com");
+    try
+    {
+        using var client = new HttpClient();
+        client.BaseAddress = new Uri("https://jsonplaceholder.typicode.com");
 
-    Console.WriteLine("Descargando todo en paralelo...");
+        Console.WriteLine("Lanzando las 3 solicitudes al mismo tiempo...");
 
-    // lanzás las tres tareas SIN await — todavía no esperás
-    var taskPosts = client.GetStringAsync("/posts");
-    var taskUsers = client.GetStringAsync("/users");
-    var taskTodos = client.GetStringAsync("/todos");
+        // Las tres se lanzan SIN await — arrancan todas juntas
+        var taskPosts = client.GetStringAsync("/posts");
+        var taskUsers = client.GetStringAsync("/users");
+        var taskTodos = client.GetStringAsync("/todos");
 
-    // ahora esperás que las tres terminen juntas
-    await Task.WhenAll(taskPosts, taskUsers, taskTodos);
+        // Esperamos a que las TRES terminen
+        await Task.WhenAll(taskPosts, taskUsers, taskTodos);
 
-    // cuando llega acá, las tres ya terminaron
-    // taskPosts.Result tiene el JSON de posts
-    // taskUsers.Result tiene el JSON de users
-    // taskTodos.Result tiene el JSON de todos
+        Console.WriteLine("Las 3 solicitudes terminaron.\n");
+
+        // Paso 2 — deserializás cada resultado
+        var posts = JsonSerializer.Deserialize<List<Post>>(taskPosts.Result);
+        var users = JsonSerializer.Deserialize<List<User>>(taskUsers.Result);
+        var todos = JsonSerializer.Deserialize<List<Todo>>(taskTodos.Result);
+
+        // Paso 3 — mostrás cuántos hay de cada uno
+        Console.WriteLine($"Posts descargados:  {posts.Count}");
+        Console.WriteLine($"Users descargados:  {users.Count}");
+        Console.WriteLine($"Todos descargados:  {todos.Count}");
+
+        // Paso 4 — mostrás un resumen de cada colección
+        Console.WriteLine("\n--- Primer post ---");
+        Console.WriteLine($"[{posts[0].id}] {posts[0].title}");
+
+        Console.WriteLine("\n--- Usuarios ---");
+        users.ForEach(u => Console.WriteLine($"  {u.id}. {u.name}"));
+
+        Console.WriteLine("\n--- Todos completados ---");
+        todos.Where(t => t.completed)
+             .Take(5)
+             .ToList()
+             .ForEach(t => Console.WriteLine($"  ✓ {t.title}"));
+    }
+    catch (HttpRequestException ex)
+    {
+        Console.WriteLine($"Error de red: {ex.Message}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error inesperado: {ex.Message}");
+    }
 }
 
-// ── MODELO ─────────────────────────────────────────
+// ── MODELOS ────────────────────────────────────────
 public class Post
 {
     public int id { get; set; }
