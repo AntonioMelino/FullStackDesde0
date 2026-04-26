@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SistemaEmpleados_API.Data;
 using SistemaEmpleados_API.Interfaces;
 using SistemaEmpleados_API.Services;
+using SistemaEmpleados_API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
