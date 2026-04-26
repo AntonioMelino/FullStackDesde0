@@ -1,30 +1,78 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SistemaEmpleados_API.Data;
 using SistemaEmpleados_API.Interfaces;
-using SistemaEmpleados_API.Services;
 using SistemaEmpleados_API.Middleware;
+using SistemaEmpleados_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ?? SERVICIOS ??????????????????????????????????????
-
-// Base de datos
+// ?? BASE DE DATOS ??????????????????????????????????
 builder.Services.AddDbContext<EmpresaContext>(options =>
     options.UseSqlServer(
         @"Server=(localdb)\MSSQLLocalDB;Database=SistemaEmpleadosAPI;Trusted_Connection=True;"
     ));
 
-// Inyección de dependencias — conecta la interfaz con la implementación
+// ?? INYECCIÓN DE DEPENDENCIAS ??????????????????????
 builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Controllers y Swagger
+// ?? JWT ????????????????????????????????????????????
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+// ?? CONTROLLERS Y SWAGGER CON JWT ?????????????????
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Empleados API", Version = "v1" });
+
+    // Agregar soporte para JWT en Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization. Escribí: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id   = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
-// ?? CREAR BD SI NO EXISTE ??????????????????????????
+// ?? CREAR BD ???????????????????????????????????????
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EmpresaContext>();
@@ -32,14 +80,16 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ?? MIDDLEWARE ?????????????????????????????????????
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
+app.UseAuthentication();  // ? antes de Authorization
 app.UseAuthorization();
 app.MapControllers();
 

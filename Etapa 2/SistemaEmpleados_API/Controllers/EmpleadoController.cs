@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SistemaEmpleados_API.Interfaces;
 using SistemaEmpleados_API.Models;
 
 namespace SistemaEmpleados_API.Controllers;
 
+[Authorize]  // ← protege TODOS los endpoints del controller
 [ApiController]
 [Route("api/[controller]")]
 public class EmpleadoController : ControllerBase
