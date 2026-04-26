@@ -10,10 +10,24 @@ using SistemaEmpleados_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ?? CORS ???????????????????????????????????????????
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",   // React desarrollo
+                "http://localhost:5173"    // Vite desarrollo
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // ?? BASE DE DATOS ??????????????????????????????????
 builder.Services.AddDbContext<EmpresaContext>(options =>
     options.UseSqlServer(
-        @"Server=(localdb)\MSSQLLocalDB;Database=SistemaEmpleadosAPI;Trusted_Connection=True;"
+        builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
 // ?? INYECCIÓN DE DEPENDENCIAS ??????????????????????
@@ -89,6 +103,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("FrontendPolicy");
 app.UseAuthentication();  // ? antes de Authorization
 app.UseAuthorization();
 app.MapControllers();
